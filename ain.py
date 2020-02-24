@@ -10,12 +10,12 @@ from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit
 SCREEN_SIZE = [600, 550]
 
 
-def map_request(coords):
+def map_request(coords, z):
     api_server = 'https://static-maps.yandex.ru/1.x'
     params = {
         'l': 'map',
-        'll': coords,
-        'z': 8
+        'll': ','.join([str(el) for el in coords]),
+        'z': z
     }
     response = requests.get(api_server, params=params)
     return response
@@ -24,16 +24,17 @@ def map_request(coords):
 class Main_window(QWidget):
     def __init__(self):
         super().__init__()
+        self.map = 'map.png'
+        self.z = 8
         self.initUI()
 
     def getImage(self):
-        coords = ','.join(self.input.text().split())
-        map_resp = map_request(coords)
+        self.coords = [float(el) for el in self.input.text().split()]
+        map_resp = map_request(self.coords, self.z)
         if not requests:
             print(map_resp)
             sys.exit(1)
 
-        self.map = 'map.png'
         with open(self.map, 'wb') as file:
             file.write(map_resp.content)
         self.pixmap = QPixmap(self.map)
@@ -45,7 +46,7 @@ class Main_window(QWidget):
         self.setWindowTitle('Отображение карты')
         self.input_info = QLabel(self)
         self.input_info.setText("Введите Информацию")
-        self.input_info.move(80, 520)
+        self.input_info.move(65, 520)
         self.input = QLineEdit(self)
         self.input.setFixedSize(300, 20)
         self.input.move(200, 520)
@@ -54,11 +55,45 @@ class Main_window(QWidget):
         self.image.resize(600, 450)
 
     def keyPressEvent(self, e):
-        if e.key() == Qt.Key_Return:
-            self.getImage()
+        try:
+            if e.key() == Qt.Key_Return:
+                self.getImage()
+                
+
+            
+            elif e.key() in (Qt.Key_PageUp, Qt.Key_PageDown) or (Qt.Key_Up, Qt.Key_Down, Qt.Key_Left, Qt.Key_Right):
+                print(e.key())
+                if e.key() == Qt.Key_PageUp:
+                    if self.z < 17:
+                        self.z += 1
+
+                elif e.key() == Qt.Key_PageDown:
+                    if self.z > 0:
+                        self.z -= 1
+                
+                elif e.key() == Qt.Key_Up:
+                    self.coords[1] += 0.3
+                
+                elif e.key() == Qt.Key_Down:
+                    self.coords[1] -= 0.3
+                    
+                elif e.key() == Qt.Key_Left:
+                    self.coords[0] -= 0.3
+                
+                elif e.key() == Qt.Key_Right:
+                    self.coords[0] += 0.3
+                
+                self.getImage()
+        except:
+            pass
+
+
 
     def closeEvent(self, event):
-        os.remove(self.map)
+        try:
+            os.remove(self.map)
+        except:
+            pass
 
 
 if __name__ == '__main__':
