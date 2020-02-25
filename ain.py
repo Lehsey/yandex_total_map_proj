@@ -3,7 +3,7 @@ import sys
 
 import requests
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QGuiApplication
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit
 
 
@@ -58,11 +58,9 @@ class Main_window(QWidget):
         try:
             if e.key() == Qt.Key_Return:
                 self.getImage()
-                
-
+                self.input.clearFocus()
             
             elif e.key() in (Qt.Key_PageUp, Qt.Key_PageDown) or (Qt.Key_Up, Qt.Key_Down, Qt.Key_Left, Qt.Key_Right):
-                print(e.key())
                 if e.key() == Qt.Key_PageUp:
                     if self.z < 17:
                         self.z += 1
@@ -72,17 +70,18 @@ class Main_window(QWidget):
                         self.z -= 1
                 
                 elif e.key() == Qt.Key_Up:
-                    self.coords[1] += 0.3
+                    self.coords[1] += 0.03 * (18 - self.z)
                 
                 elif e.key() == Qt.Key_Down:
-                    self.coords[1] -= 0.3
+                    self.coords[1] -= 0.03 * (18 - self.z)
                     
                 elif e.key() == Qt.Key_Left:
-                    self.coords[0] -= 0.3
+                    self.coords[0] -= 0.03 * (18 - self.z)
                 
                 elif e.key() == Qt.Key_Right:
-                    self.coords[0] += 0.3
+                    self.coords[0] += 0.03 * (18 - self.z)
                 
+                self.input.setText(' '.join([str(el) for el in self.coords]))
                 self.getImage()
         except:
             pass
