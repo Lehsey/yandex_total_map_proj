@@ -43,19 +43,20 @@ class Main_window(QWidget):
     def getImage(self):
         try:
             self.coords = [float(el) for el in self.input.text().split()]
-            if self.mark:
+            print(self.coords)
+            if self.mark != 0:
                 map_resp = map_request(self.coords, self.z, MAP_TYPES[self.map_type], self.mark)
             else:
                 map_resp = map_request(self.coords, self.z, MAP_TYPES[self.map_type], self.coords)
 
         except:
-            self.coords = self.input.text()
-            response = toponyms_searcher(self.coords)
-            need_city = response["response"]["GeoObjectCollection"]["featureMember"][0]
-            need_coord = need_city['Point']['pos'].split()
-            self.coords = need_coord
-            self.mark = need_coord
+            need_city = toponyms_searcher(self.input.text())["response"]["GeoObjectCollection"]["featureMember"][0]
+            print(need_city)
+            self.coords = [int(el) for el in need_city['Point']['pos'].split()]
+            print(self.coords)
+            self.mark = self.coords
             spn = spn_serch(need_city)
+            print(spn)
             map_resp = map_request(self.coords, self.z, MAP_TYPES[self.map_type], self.mark, spn=spn)
             
 
@@ -89,7 +90,6 @@ class Main_window(QWidget):
                 self.input.clearFocus()
             
             elif e.key() in (Qt.Key_PageUp, Qt.Key_PageDown, Qt.Key_Up, Qt.Key_Down, Qt.Key_Left, Qt.Key_Right, Qt.Key_L):
-                print(e.key(), Qt.Key_PageUp, Qt.Key_PageDown, Qt.Key_Up, Qt.Key_Down, Qt.Key_Left, Qt.Key_Right, Qt.Key_L)
                 if e.key() == Qt.Key_PageUp:
                     if self.z < 17:
                         self.z += 1
