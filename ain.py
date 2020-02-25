@@ -8,12 +8,14 @@ from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit
 
 
 SCREEN_SIZE = [600, 550]
+MAP_TYPES = ['map', 'sat', 'sat,skl']
 
 
-def map_request(coords, z):
+def map_request(coords, z, map_type):
     api_server = 'https://static-maps.yandex.ru/1.x'
+    print(map_type)
     params = {
-        'l': 'map',
+        'l': map_type,
         'll': ','.join([str(el) for el in coords]),
         'z': z
     }
@@ -25,12 +27,13 @@ class Main_window(QWidget):
     def __init__(self):
         super().__init__()
         self.map = 'map.png'
+        self.map_type = 0
         self.z = 8
         self.initUI()
 
     def getImage(self):
         self.coords = [float(el) for el in self.input.text().split()]
-        map_resp = map_request(self.coords, self.z)
+        map_resp = map_request(self.coords, self.z, MAP_TYPES[self.map_type])
         if not requests:
             print(map_resp)
             sys.exit(1)
@@ -60,7 +63,8 @@ class Main_window(QWidget):
                 self.getImage()
                 self.input.clearFocus()
             
-            elif e.key() in (Qt.Key_PageUp, Qt.Key_PageDown) or (Qt.Key_Up, Qt.Key_Down, Qt.Key_Left, Qt.Key_Right):
+            elif e.key() in (Qt.Key_PageUp, Qt.Key_PageDown) or (Qt.Key_Up, Qt.Key_Down, Qt.Key_Left, Qt.Key_Right, Qt.Key_L):
+                print(Qt.Key_L, e.key())
                 if e.key() == Qt.Key_PageUp:
                     if self.z < 17:
                         self.z += 1
@@ -70,16 +74,25 @@ class Main_window(QWidget):
                         self.z -= 1
                 
                 elif e.key() == Qt.Key_Up:
-                    self.coords[1] += 0.03 * (18 - self.z)
+                    if self.coords[1] < 90:
+                        self.coords[1] += 0.03 * (18 - self.z)
                 
                 elif e.key() == Qt.Key_Down:
-                    self.coords[1] -= 0.03 * (18 - self.z)
+                    if self.coords[1] > -90:
+                        self.coords[1] -= 0.03 * (18 - self.z)
                     
                 elif e.key() == Qt.Key_Left:
-                    self.coords[0] -= 0.03 * (18 - self.z)
+                    if self.coords[0] > -180:
+                        self.coords[0] -= 0.03 * (18 - self.z)
                 
                 elif e.key() == Qt.Key_Right:
-                    self.coords[0] += 0.03 * (18 - self.z)
+                    if self.coords[0] < 180:
+                        self.coords[0] += 0.03 * (18 - self.z)
+                
+                elif e.key() == Qt.Key_L:
+                        self.map_type = (self.map_type + 1) % 3
+                        print(self.map_type)
+                print(self.map_type)
                 
                 self.input.setText(' '.join([str(el) for el in self.coords]))
                 self.getImage()
